@@ -26,5 +26,8 @@ Note: All these things has to be sorted by game mode and map (solo-fpp, duo-fpp,
 * Correlation between molotov usage and k/d
 * Correlation between smoke usage and win%
 * Correlation between smoke usage and k/d
+* Correlation between driving (distance?) in the first and second phase to rank and win%
+* Correlation between driving (distance?) in the last phases to rank and win%
+
 
 
