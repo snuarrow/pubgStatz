@@ -6,9 +6,10 @@ A Project where we collect and analyze data from PUBG Developer API
 ### Iteration 1: 
 - [x] Get The API-requests Working
 - [x] Get single player data, match data and match telemetry data using the API
-- [ ] Get huge amount of data from different matches and different players
-- [ ] Save the data to database and sort and categorize it so it can be accessed later
-- [ ] Analyze data from the database (in the first iteration this should be done as easily as possible. No front-end, react, js or any other stuff.)
+- [x] Get huge amount of data from different matches and different players
+- [ ] Save the data to database and sort and categorize it so it can be accessed later easily
+- [ ] Analyze data from the database 
+- [ ] Visualize analyzed data with some sick ass graphs (in the first iteration this should be done as easily as possible. No front-end, react, js or any other stuff.)
 
 ### Iteration 2: 
 -
