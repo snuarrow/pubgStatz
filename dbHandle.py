@@ -3,14 +3,6 @@ import pandas as pd
 
 conn_string = "host=localhost port=5432 dbname=pubgstatz user=pubgstatz password=pubgstatz"
 
-#conn = psycopg2.connect(conn_string)
-
-#sql_command = "SELECT * FROM test"
-
-#data = pd.read_sql(sql_command, conn)
-
-#print(data.shape)
-
 def getDBConnection(host, port, dbname, user, password):
     return psycopg2.connect("host="+host+" port="+port+" dbname="+dbname+ " user="+user+" password="+password)
 
@@ -32,23 +24,33 @@ def initDB(connection):
     sqlCommand(connection, "CREATE TABLE IF NOT EXISTS matches (id SERIAL PRIMARY KEY, mode VARCHAR NOT NULL, map VARCHAR NOT NULL, json VARCHAR NOT NULL)")
     sqlCommand(connection, "CREATE TABLE IF NOT EXISTS telemetries (id SERIAL PRIMARY KEY, json VARCHAR NOT NULL)")
 
-def saveUser(connection, userId, userJson):
+def saveUserJson(connection, userId, userJson):
     try:
-        #psql_insert_query = """ INSERT INTO users (id, json) VALUES (%s, %s)"""
-        #record_to_insert = (userId, userJson)
-        getCursor(connection).execute("INSERT INTO users VALUES("+str(userId)+",'"+userJson+"')")
-        connection.commit()
+        if not loadUserJson(connection, userId):
+            getCursor(connection).execute("INSERT INTO users VALUES("+str(userId)+",'"+userJson+"')")
+            connection.commit()
+        else:
+            print("Error: user already exists")
     except (Exception, psycopg2.Error) as error:
         print("Failed to save user: ", error)
 
+def loadUserJson(connection, userId):
+    cursor = getCursor(connection)
+    cursor.execute("SELECT * FROM users WHERE id="+str(userId))
+    record = cursor.fetchall()
+    if len(record) is 1:
+        return True, record[0][1]
+    else:
+        return False
 
+# example use case
 conn = getDBConnection("localhost", "5432", "pubgstatz", "pubgstatz", "pubgstatz")
-
-
 initDB(conn)
-saveUser(conn, 234, "kakendatat")
-
-
+saveUserJson(conn, 236, "kakendatat")
 data = query(conn, "SELECT * FROM users")
-
+print("select * from users:")
 print(data)
+print("load user 234:")
+print(loadUserJson(conn, 234))
+print("load user 235:")
+print(loadUserJson(conn,235))
