@@ -25,15 +25,15 @@ Note: All these things has to be sorted by game mode and map (solo-fpp, duo-fpp,
 * Correlation between rank and landing time difference from first landing time
 * Correlation between rank and jump distance from the jump point
 * Correlation between rank and jump distance from the flight path
-* Correlation between molotov usage and win% (will need player data or something else)
-* Correlation between molotov usage and kills
-* Correlation between molotov usage and rank
-* Correlation between smoke usage and win% (will need player data or something else)
-* Correlation between smoke usage and rank
-* Correlation between smoke usage and kills
-* Correlation between smoke usage and win% (will need player data or something else)
-* Correlation between smoke usage and rank
-* Correlation between smoke usage and kills
+* Correlation between molotov throw amount and win% (will need player data or something else)
+* Correlation between molotov throw amount and kills
+* Correlation between molotov throw amount and rank
+* Correlation between smoke throw amount and win% (will need player data or something else)
+* Correlation between smoke throw amount and rank
+* Correlation between smoke throw amount and kills
+* Correlation between grenade throw amount and win% (will need player data or something else)
+* Correlation between grenade throw amount and rank
+* Correlation between grenade throw amount and kills
 * Correlation between driving (distance?) in the first and second phase to rank (this has to be compared to others who dropped in the same location/ same distance)
 * Correlation between driving (distance?) in the last phases to rank (this has to be compared to others who dropped in the same location/ same distance)
 
