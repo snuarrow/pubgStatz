@@ -20,7 +20,7 @@ A Project where we collect and analyze data from PUBG Developer API
 
 ## Things and ideas to analyze:
 Note: All these things has to be sorted by game mode and map (solo-fpp, duo-fpp, squad-fpp and sanhok, vikendi, erangel and miramar) 
-
+### Parachuting distances:
 * Correlation between rank, and distance between landing location and first circle position
 * Correlation between rank, and distance between landing location and sixth circle position
 * Correlation between rank, and distance between player position when fourth circle position appears
@@ -30,7 +30,7 @@ Note: All these things has to be sorted by game mode and map (solo-fpp, duo-fpp,
 * *Correlation between rank and jump distance from the flight path (the flight path has to be calculated from the player position when starting flight and leaving the plane)*
 
 ___
-
+### Throwables:
 * *Correlation between molotov throw amount and win% (will need player data or something else)*
 * Correlation between molotov throw amount and kills
 * Correlation between molotov throw amount and rank
@@ -42,7 +42,7 @@ ___
 * Correlation between grenade throw amount and kills
 
 ___
-
+### Driving:
 * *Correlation between driving (distance?) in the first and second phase to rank (this has to be compared to others who dropped in the same location/ same distance)*
 * *Correlation between driving (distance?) in the last phases to rank (this has to be compared to others who dropped in the same location/ same distance)*
 
