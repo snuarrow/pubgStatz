@@ -9,7 +9,7 @@ A Project where we collect and analyze data from PUBG Developer API
 - [x] Get huge amount of data from different matches and different players
 - [ ] Save the data to database and sort and categorize it so it can be accessed later easily
 - [ ] Analyze data from the database 
-- [ ] Visualize analyzed data with some sick ass graphs (in the first iteration this should be done as easily as possible. No front-end, react, js or any other stuff.)
+- [x] Visualize analyzed data with some sick ass graphs (in the first iteration this should be done as easily as possible. No front-end, react, js or any other stuff.) This is actually quite easy with seaborn. Just give it some data in array format and it will show a graph. The hard part is to parse, manipulate  and get the data from the rawdata files.
 - [ ] Profit ???
 
 ### Iteration 2: 
