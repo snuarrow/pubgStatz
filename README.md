@@ -22,12 +22,17 @@ A Project where we collect and analyze data from PUBG Developer API
 Note: All these things has to be sorted by game mode and map (solo-fpp, duo-fpp, squad-fpp and sanhok, vikendi, erangel and miramar) 
 * Correlation between rank, and distance between landing location and first circle position
 * Correlation between rank, and distance between landing location and sixth circle position
-* Correlation between rank and jump time vs landing time
+* Correlation between rank and landing time difference from first landing time
 * Correlation between rank and jump distance from the jump point
 * Correlation between rank and jump distance from the flight path
-* Correlation between molotov usage and win%
+* Correlation between molotov usage and win% (will need player data or something else)
 * Correlation between molotov usage and kills
-* Correlation between smoke usage and win%
+* Correlation between molotov usage and rank
+* Correlation between smoke usage and win% (will need player data or something else)
+* Correlation between smoke usage and rank
+* Correlation between smoke usage and kills
+* Correlation between smoke usage and win% (will need player data or something else)
+* Correlation between smoke usage and rank
 * Correlation between smoke usage and kills
 * Correlation between driving (distance?) in the first and second phase to rank (this has to be compared to others who dropped in the same location/ same distance)
 * Correlation between driving (distance?) in the last phases to rank (this has to be compared to others who dropped in the same location/ same distance)
