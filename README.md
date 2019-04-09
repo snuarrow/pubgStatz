@@ -20,13 +20,14 @@ A Project where we collect and analyze data from PUBG Developer API
 
 ## Things and ideas to analyze:
 Note: All these things has to be sorted by game mode and map (solo-fpp, duo-fpp, squad-fpp and sanhok, vikendi, erangel and miramar) 
+
 * Correlation between rank, and distance between landing location and first circle position
 * Correlation between rank, and distance between landing location and sixth circle position
 * Correlation between rank, and distance between player position when fourth circle position appears
 * Correlation between rank, and wheter the player is inside the safezone when different zones appear (e.g `isGame: 2.0, isInBlueZone: True`)
 * Correlation between rank and landing time difference from first player landing time
 * Correlation between rank and jump distance from the jump point
-* _Correlation between rank and jump distance from the flight path (the flight path has to be calculated from the player position when starting flight and leaving the plane)
+* *Correlation between rank and jump distance from the flight path (the flight path has to be calculated from the player position when starting flight and leaving the plane)*
 
 ___
 
