@@ -27,17 +27,19 @@ class DBHandle:
         self.sqlCommand("CREATE TABLE IF NOT EXISTS matches (id SERIAL PRIMARY KEY, mode VARCHAR NOT NULL, map VARCHAR NOT NULL, json VARCHAR NOT NULL)")
         self.sqlCommand("CREATE TABLE IF NOT EXISTS telemetries (id SERIAL PRIMARY KEY, json VARCHAR NOT NULL)")
 
-    def saveUserJson(self, connection, userId, userJson):
+    # TODO: get rid of copypaste in save functions
+    def saveUserJson(self, userId, userJson):
         try:
-            if not self.loadUserJson(connection, userId):
+            if not self.loadUserJson(userId):
                 self.getCursor().execute("INSERT INTO users VALUES("+str(userId)+",'"+userJson+"')")
-                connection.commit()
+                self.connection.commit()
             else:
                 print("Error: user already exists")
         except (Exception, psycopg2.Error) as error:
             print("Failed to save user: ", error)
 
-    def loadUserJson(self, connection, userId):
+    # TODO: get rid of copypaste in load functions
+    def loadUserJson(self, userId):
         cursor = self.getCursor()
         cursor.execute("SELECT * FROM users WHERE id="+str(userId))
         record = cursor.fetchall()
@@ -45,3 +47,24 @@ class DBHandle:
             return True, record[0][1]
         else:
             return False
+
+    # TODO: get rid of copypaste in load functions
+    def loadMatchJson(self, matchId):
+        cursor = self.getCursor()
+        cursor.execute("select * from matches where id="+str(matchId))
+        record = cursor.fetchall()
+        if len(record) is 1:
+            return True, record[0][1]
+        else:
+            return False
+
+    # TODO: get rid of copypaste in save functions
+    def saveMatch(self, matchId, matchJson):
+        try:
+            if not self.loadMatchJson(matchId):
+                self.getCursor().execute("insert into matches values("+str(matchId)+",'"+matchJson+"')")
+                self.connection.commit()
+            else:
+                print("Error: match already exists")
+        except (Exception, psycopg2.Error) as error:
+            print("Failed to save match: ", error)

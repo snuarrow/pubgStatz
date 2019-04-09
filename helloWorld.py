@@ -1,6 +1,10 @@
 import requests
 import json
 import datetime
+from flows import WebDataBasePopulator
+
+webDataBasePopulator = WebDataBasePopulator()
+webDataBasePopulator.saveAllMatchesOfPlayer("JantevaVarsi")
 
 # do magic and print csv points for time spent before landing and rank
 #results = set()
