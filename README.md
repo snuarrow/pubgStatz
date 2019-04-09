@@ -34,7 +34,7 @@ ___
 * *Correlation between molotov throw amount and win% (will need player data or something else)*
 * Correlation between molotov throw amount and kills
 * Correlation between molotov throw amount and rank
-* _Correlation between smoke throw amount and win% (will need player data or something else)*
+* *Correlation between smoke throw amount and win% (will need player data or something else)*
 * Correlation between smoke throw amount and rank
 * Correlation between smoke throw amount and kills
 * *Correlation between grenade throw amount and win% (will need player data or something else)*
