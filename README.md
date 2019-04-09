@@ -26,18 +26,24 @@ Note: All these things has to be sorted by game mode and map (solo-fpp, duo-fpp,
 * Correlation between rank, and wheter the player is inside the safezone when different zones appear (e.g `isGame: 2.0, isInBlueZone: True`)
 * Correlation between rank and landing time difference from first player landing time
 * Correlation between rank and jump distance from the jump point
-* _Correlation between rank and jump distance from the flight path (the flight path has to be calculated from the player position when starting flight and leaving the plane)_
-* _Correlation between molotov throw amount and win% (will need player data or something else)_
+* _Correlation between rank and jump distance from the flight path (the flight path has to be calculated from the player position when starting flight and leaving the plane)
+
+___
+
+* *Correlation between molotov throw amount and win% (will need player data or something else)*
 * Correlation between molotov throw amount and kills
 * Correlation between molotov throw amount and rank
-* _Correlation between smoke throw amount and win% (will need player data or something else)_
+* _Correlation between smoke throw amount and win% (will need player data or something else)*
 * Correlation between smoke throw amount and rank
 * Correlation between smoke throw amount and kills
-* _Correlation between grenade throw amount and win% (will need player data or something else)_
+* *Correlation between grenade throw amount and win% (will need player data or something else)*
 * Correlation between grenade throw amount and rank
 * Correlation between grenade throw amount and kills
-* _Correlation between driving (distance?) in the first and second phase to rank (this has to be compared to others who dropped in the same location/ same distance)_
-* _Correlation between driving (distance?) in the last phases to rank (this has to be compared to others who dropped in the same location/ same distance)_
+
+___
+
+* *Correlation between driving (distance?) in the first and second phase to rank (this has to be compared to others who dropped in the same location/ same distance)*
+* *Correlation between driving (distance?) in the last phases to rank (this has to be compared to others who dropped in the same location/ same distance)*
 
 
 
