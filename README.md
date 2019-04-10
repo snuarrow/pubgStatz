@@ -24,10 +24,11 @@ Note: All these things has to be sorted by game mode and map (solo-fpp, duo-fpp,
 * Correlation between rank, and distance between landing location and first circle position
 * Correlation between rank, and distance between landing location and sixth circle position
 * Correlation between rank, and distance between player position when fourth circle position appears
-* Correlation between rank, and wheter the player is inside the safezone when different zones appear (e.g `isGame: 2.0, isInBlueZone: True`)
 * Correlation between rank and landing time difference from first player landing time
 * Correlation between rank and jump distance from the jump point (this isn't needed if the one in the below can be calculated.)
 * *Correlation between rank and jump distance from the flight path (the flight path has to be calculated from the player position when starting flight and leaving the plane)*
+* Correlation between rank, and wheter the player is inside the safezone when different zones appear (e.g `isGame: 2.0, isInBlueZone: True`)
+
 
 ___
 ### Throwables:
