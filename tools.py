@@ -9,3 +9,7 @@ class DateTools:
 
     def elapsedTime(self, timeStamp0, timeStamp1):
         print("Error: not implemented yet.")
+
+class LocationTools:
+    def dist(pointA, pointB):
+        print("Error: not implemented yet")

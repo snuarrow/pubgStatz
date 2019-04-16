@@ -7,3 +7,4 @@ class Contender:
 
     jumpTime = "" # not used currently
     landingTime = ""
+
