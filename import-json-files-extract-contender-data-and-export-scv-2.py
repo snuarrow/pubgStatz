@@ -1,6 +1,8 @@
 import os
 import shutil
 import json
+import math
+import numpy as np
 
 class Contender:
   landingLocation = None
@@ -19,7 +21,7 @@ class Location:
       self.z = z
 
     def distanceFromFlightPath(self, firstJumpLocation, lastJumpLocation):
-      return abs((jumpX-startX)*(firstJumpLocation.y-self.y) - (firstJumpLocation.x-self.x)*(lastJumpLocation.y-firstJumpLocation.y)) / np.sqrt(np.square(lastJumpLocation.x-firstJumpLocation.x) + np.square(lastJumpLocation.y-firstJumpLocation.y))
+      return abs((lastJumpLocation.y-firstJumpLocation.x)*(firstJumpLocation.y-self.y) - (firstJumpLocation.x-self.x)*(lastJumpLocation.y-firstJumpLocation.y)) / np.sqrt(np.square(lastJumpLocation.x-firstJumpLocation.x) + np.square(lastJumpLocation.y-firstJumpLocation.y))
 
 
 class TelemetryParser:
@@ -28,11 +30,11 @@ class TelemetryParser:
     self.firstJumpLocation =  None
     self.lastJumpLocation = None
     self.isFirstJump = True
-    self.zoidberg(telemetryJson)
+    self.parseTValues(telemetryJson)
 
 
-  def zoidberg(self, telemetryJson):
-    print("QQQQQQQQQ: "+str(len(telemetryJson)))
+  def parseTValues(self, telemetryJson):
+    #print("QQQQQQQQQ: "+str(len(telemetryJson)))
     if len(telemetryJson) < 300:
       return
     for item in telemetryJson:
@@ -66,7 +68,6 @@ class TelemetryParser:
           rank = player["ranking"]
           accountId = player["accountId"]
           if self.contenders[accountId] == None:
-            #self.contenders[accountId] = contender
             print 'lol'
           else:
             contender = self.contenders[accountId] 
@@ -74,16 +75,12 @@ class TelemetryParser:
             contender.rank = rank                  
             contender.name = name
             self.contenders[accountId] = contender
-            pasi = self.contenders[accountId]
-            #print (str(contender.accountId)+', '+str(contender.name)+', '+str(contender.rank, ))#<-toimii
-          #self.contenders[accountId].rank = rank #old
-          #self.contenders[accountId].name = name
-          #self.contenders[accountId].accountId = accountId
+
 
   def parseLogParachuteLanding(self, parachuteLandingT):
     accountId,location, timeStamp = self.parseLocation(parachuteLandingT)
-    #self.contenders[accountId].landingLocation = location
-    #self.contenders[accountId].landingTime = timeStamp
+    self.contenders[accountId].landingLocation = location
+    self.contenders[accountId].landingTime = timeStamp
 
 
   def parseLogVehicleLeave(self, logVehicleLeaveT):
@@ -119,13 +116,12 @@ for filename in processable_files:
       input_file=open('json/'+filename, 'r')
       telemetryFile=json.load(input_file)
       tp = TelemetryParser(telemetryFile)
-      print("contendersamount: "+str(len(tp.contenders)))
-      for contender in tp.contenders:
-        print contender.accountId
+      #print("contendersamount: "+str(len(tp.contenders)))
+      for accountId in tp.contenders:
+        contender = tp.contenders[accountId]
         try:
-          #contender.distanceFromFlightPath = contender.landingLocation.distanceFromFlightPath(tp.firstJumpLocation, tp.lastJumpLocation)
-          #asd.append((contender.distanceFromFlightPath, contender.rank))
-          asd.append((0,contender.rank))
+          contender.distanceFromFlightPath = contender.landingLocation.distanceFromFlightPath(tp.firstJumpLocation, tp.lastJumpLocation)
+          asd.append((contender.distanceFromFlightPath, contender.rank)) #koosta lista mita haluat
         except:
           continue
 
