@@ -66,13 +66,15 @@ class TelemetryParser:
           rank = player["ranking"]
           accountId = player["accountId"]
           if self.contenders[accountId] == None:
-            self.contenders[accountId] = contender
+            #self.contenders[accountId] = contender
+            print 'lol'
           else:
             contender = self.contenders[accountId] 
             contender.accountId = accountId
             contender.rank = rank                  
             contender.name = name
             self.contenders[accountId] = contender
+            pasi = self.contenders[accountId]
             #print (str(contender.accountId)+', '+str(contender.name)+', '+str(contender.rank, ))#<-toimii
           #self.contenders[accountId].rank = rank #old
           #self.contenders[accountId].name = name
@@ -80,8 +82,8 @@ class TelemetryParser:
 
   def parseLogParachuteLanding(self, parachuteLandingT):
     accountId,location, timeStamp = self.parseLocation(parachuteLandingT)
-    self.contenders[accountId].landingLocation = location
-    self.contenders[accountId].landingTime = timeStamp
+    #self.contenders[accountId].landingLocation = location
+    #self.contenders[accountId].landingTime = timeStamp
 
 
   def parseLogVehicleLeave(self, logVehicleLeaveT):
@@ -91,14 +93,17 @@ class TelemetryParser:
 
   def parseJumpStart(self, logJumpStartT):
     accountId,location,timeStamp = self.parseLocation(logJumpStartT)
+    contender = None
+
     try:
-      self.contenders[accountId]
+      contender = self.contenders[accountId]
     except:
-      self.contenders[accountId] = Contender()
-
-
-    self.contenders[accountId].jumpLocation = location
-    self.contenders[accountId].jumpTime = timeStamp
+      contender = Contender()
+      contender.accountId = accountId
+      contender.jumpLocation = location
+      contender.jumpTime = timeStamp
+      self.contenders[accountId] = contender
+  
     if self.isFirstJump == True:
       self.firstJumpLocation = location
       self.isFirstJump = False
@@ -116,7 +121,7 @@ for filename in processable_files:
       tp = TelemetryParser(telemetryFile)
       print("contendersamount: "+str(len(tp.contenders)))
       for contender in tp.contenders:
-        print contender
+        print contender.accountId
         try:
           #contender.distanceFromFlightPath = contender.landingLocation.distanceFromFlightPath(tp.firstJumpLocation, tp.lastJumpLocation)
           #asd.append((contender.distanceFromFlightPath, contender.rank))
