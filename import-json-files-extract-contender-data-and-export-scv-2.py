@@ -18,6 +18,7 @@ class Contender:
   distanceFromFlightPath = None
   landingTimeDelta = None
   jumpDistance = None
+  killCount = 0
 
 class Match:
   firstCirclePosition = None
@@ -61,20 +62,46 @@ class TelemetryParser:
         elif t == "LogVehicleLeave":
           self.parseLogVehicleLeave(item)
 
-        #elif t == "LogGameStatePeriodic" and item['common']['isGame'] == 1.5:
-          #self.parseGameState(item)
+        elif t == "LogPlayerKill":
+          self.parseLogPlayerKillStats(item)
 
+        '''
+        elif t == "LogGameStatePeriodic" and item['common']['isGame'] == 1.5:
+          self.parseGameState(item)
+        '''
   '''
-  def parseGameState(self,):
+  def parseGameState(self,t):
+    match = None
+    safezoneX = t['gameState']['poisonGasWarningPosition']['x']
+    safezoneY = t['gameState']['poisonGasWarningPosition']['y']
+
     try:
-      match = self.contenders[accountId]
+      match = self.matchData[matchId]
     except:
-      match = Match()
-      contender.accountId = accountId
-      contender.jumpLocation = location
-      contender.jumpTime = timeStamp
-      self.contenders[accountId] = contender
+      match = matchData()
+      match.matchId = matchId
+      match.SafezoneLocationGameState1 = location
+      
+      self.matchData[matchId] = match
+    return 'tuut'
   '''
+
+  def parseLogPlayerKillStats(self, LogPlayerKillT):
+    for player in LogPlayerKillT["victimGameResult"]:      
+      accountId = LogPlayerKillT["victimGameResult"]["accountId"]
+      killCount = LogPlayerKillT["victimGameResult"]["stats"]["killCount"]
+      distanceOnFoot = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnFoot"]
+      distanceOnVehicle = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnVehicle"]
+      distanceOnParachute = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnParachute"]
+      distanceOnFreefall = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnFreefall"]
+      contender = self.contenders[accountId]
+      contender.accountId = accountId
+      contender.killCount = killCount
+      contender.distanceOnFoot =  int(round(distanceOnFoot))
+      contender.distanceOnVehicle = int(round(distanceOnVehicle))
+      contender.distanceOnParachute = int(round(distanceOnParachute))
+      contender.distanceOnFreefall = int(round(distanceOnFreefall))
+      self.contenders[accountId] = contender
 
   def parseLocation(self, t):
     accountId = t['character']['accountId']
@@ -161,15 +188,16 @@ for filename in processable_files:
       telemetryFile=json.load(input_file)
       tp = TelemetryParser(telemetryFile)
       #print("contendersamount: "+str(len(tp.contenders))) #printtaa contender listan pituus
-      print filename
+      #print filename
       for accountId in tp.contenders:
         contender = tp.contenders[accountId]
-        try:
-          contender.distanceFromFlightPath = contender.landingLocation.distanceFromFlightPath(tp.firstJumpLocation, tp.lastJumpLocation)
-          contender.landingTimeDelta = landingTimeDelta(contender.landingTime, tp.firstLandTime)
-          contender.jumpDistance = math.sqrt( (contender.landingLocation.x - contender.jumpLocation.x)**2 + (contender.landingLocation.y - contender.jumpLocation.y)**2 )
 
-          parsedContendersData.append((contender.distanceFromFlightPath, contender.rank, contender.landingTimeDelta, contender.jumpDistance)) #koosta lista halutuista tiedoista
+        try:
+          contender.distanceFromFlightPath = int(round(contender.landingLocation.distanceFromFlightPath(tp.firstJumpLocation, tp.lastJumpLocation)))
+          contender.landingTimeDelta = int(round(landingTimeDelta(contender.landingTime, tp.firstLandTime)))
+          contender.jumpDistance = int(round(math.sqrt( (contender.landingLocation.x - contender.jumpLocation.x)**2 + (contender.landingLocation.y - contender.jumpLocation.y)**2 )))
+
+          parsedContendersData.append((contender.distanceFromFlightPath, contender.rank, contender.landingTimeDelta, contender.jumpDistance, contender.killCount, contender.distanceOnVehicle,  contender.distanceOnParachute,  contender.distanceOnFreefall, contender.distanceOnFoot)) #koosta lista halutuista tiedoista
         except:
           continue
 
@@ -181,9 +209,9 @@ for filename in processable_files:
 
 
 #tama toimii!
-#print("distance,rank") #printtaa listan otsikko niista mista haluat
+print("distance,rank,landtimeDelta,jumpDistance,distanceOnFoot") #printtaa listan otsikko niista mista haluat
 for parsedContender in parsedContendersData:
-  print(str(parsedContender[0])+","+str(parsedContender[1])+","+str(parsedContender[2])+","+str(parsedContender[3])) #printtaa halutut tiedot
+  print(str(parsedContender[0])+","+str(parsedContender[1])+","+str(parsedContender[2])+","+str(parsedContender[3])+","+str(parsedContender[4])+","+str(parsedContender[5])+","+str(parsedContender[6])+","+str(parsedContender[7])+","+str(parsedContender[8])) #printtaa halutut tiedot
 
 
 
