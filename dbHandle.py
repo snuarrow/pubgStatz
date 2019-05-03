@@ -58,6 +58,16 @@ class DBHandle:
         else:
             return False
 
+    # TODO: get rid of copypaste in load functions
+    def loadTelemetryJson(self, matchId):
+        cursor = self.getCursor()
+        cursor.execute("select * from telemetries where id="+str(matchId))
+        record = cursor.fetchall()
+        if len(record) is 1:
+            return True, record[0][1]
+        else:
+            return False
+
     # TODO: get rid of copypaste in save functions
     def saveMatch(self, matchId, matchJson):
         try:
@@ -68,3 +78,14 @@ class DBHandle:
                 print("Error: match already exists")
         except (Exception, psycopg2.Error) as error:
             print("Failed to save match: ", error)
+
+    # TODO: get rid of copypaste in save functions
+    def saveTelemetry(self, matchId, telemetryJson):
+        try:
+            if not self.loadTelemetryJson(matchId):
+                self.getCursor().execute("insert into telemetries values("+str(matchId)+",'"+telemetryJson+"')")
+                self.connection.commit()
+            else:
+                print("Error: telemetry already exists")
+        except (Exception, psycopg2.Error) as error:
+            print("Failed to save telemetry: ", error)

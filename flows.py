@@ -1,5 +1,6 @@
 from dbHandle import DBHandle
 from interwebs import Interwebs
+from fileIO import JsonReader
 
 class WebDataBasePopulator:
     def __init__(self):
@@ -11,3 +12,16 @@ class WebDataBasePopulator:
         for matchId in matchIds:
             matchJson = self.interwebs.webGetMatchData(matchId)
             self.db.saveMatch(matchId, matchJson)
+
+class LocalDataBasePopulator:
+    def __init__(self, relativeFolder):
+        self.db = DBHandle("localhost", "5432", "pubgstatz", "pubgstatz", "pubgstatz")
+        jsonReader = JsonReader(relativeFolder)
+        telemetryJsons = jsonReader.telemetryJsons
+        for telemetry in telemetryJsons:
+            self.db.saveTelemetry(telemetry.matchId, telemetry.json)
+
+
+class LocalOperations:
+    def parseJumpdistanceVsRank(self, relativeFolder):
+        print('lol')
