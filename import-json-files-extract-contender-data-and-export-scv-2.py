@@ -6,6 +6,8 @@ import numpy as np
 import csv
 import datetime
 import dateutil.parser as dp
+import collections
+from collections import Counter
 
 class Contender:
   landingLocation = None
@@ -15,13 +17,16 @@ class Contender:
   rank = None
   jumpTime = None
   landingTime = None
-  distanceFromFlightPath = None
-  landingTimeDelta = None
-  jumpDistance = None
+  distanceFromFlightPath = 0
+  landingTimeDelta = 0
+  jumpDistance = 0
+  landingFromFirstCircle = 0
   killCount = 0
-
-class Match:
-  firstCirclePosition = None
+  jumpDistance = 0
+  distanceOnVehicle = 0
+  distanceOnParachute = 0
+  distanceOnFreefall = 0
+  distanceOnFoot = 0
 
 class Location:
     def __init__(self, x, y, z):
@@ -30,13 +35,12 @@ class Location:
       self.z = z
 
     def distanceFromFlightPath(self, firstJumpLocation, lastJumpLocation):
-      return abs((lastJumpLocation.y-firstJumpLocation.x)*(firstJumpLocation.y-self.y) - (firstJumpLocation.x-self.x)*(lastJumpLocation.y-firstJumpLocation.y)) / np.sqrt(np.square(lastJumpLocation.x-firstJumpLocation.x) + np.square(lastJumpLocation.y-firstJumpLocation.y))
+      return abs((lastJumpLocation.x-firstJumpLocation.x)*(firstJumpLocation.y-self.y) - (firstJumpLocation.x-self.x)*(lastJumpLocation.y-firstJumpLocation.y)) / np.sqrt(np.square(lastJumpLocation.x-firstJumpLocation.x) + np.square(lastJumpLocation.y-firstJumpLocation.y))
 
 
 class TelemetryParser:
   def __init__(self, telemetryJson):
     self.contenders = dict()
-    self.matchData = dict()
     self.firstJumpLocation =  None
     self.firstLandTime =  None
     self.lastJumpLocation = None
@@ -64,44 +68,58 @@ class TelemetryParser:
 
         elif t == "LogPlayerKill":
           self.parseLogPlayerKillStats(item)
-
-        '''
-        elif t == "LogGameStatePeriodic" and item['common']['isGame'] == 1.5:
+        
+        elif t == "LogGameStatePeriodic" and item['common']['isGame'] == 1:
           self.parseGameState(item)
-        '''
-  '''
+        
+        elif t == "LogGameStatePeriodic" and item['common']['isGame'] == 4:
+          self.parseGameState4(item)
+
+
   def parseGameState(self,t):
-    match = None
     safezoneX = t['gameState']['poisonGasWarningPosition']['x']
     safezoneY = t['gameState']['poisonGasWarningPosition']['y']
+    self.safezoneX = safezoneX
+    self.safezoneY = safezoneY
 
-    try:
-      match = self.matchData[matchId]
-    except:
-      match = matchData()
-      match.matchId = matchId
-      match.SafezoneLocationGameState1 = location
-      
-      self.matchData[matchId] = match
-    return 'tuut'
-  '''
+  def parseGameState4(self,t):
+    safezoneX4 = t['gameState']['poisonGasWarningPosition']['x']
+    safezoneY4 = t['gameState']['poisonGasWarningPosition']['y']
+    self.safezoneX4 = safezoneX4
+    self.safezoneY4 = safezoneY4
 
   def parseLogPlayerKillStats(self, LogPlayerKillT):
-    for player in LogPlayerKillT["victimGameResult"]:      
-      accountId = LogPlayerKillT["victimGameResult"]["accountId"]
-      killCount = LogPlayerKillT["victimGameResult"]["stats"]["killCount"]
-      distanceOnFoot = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnFoot"]
-      distanceOnVehicle = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnVehicle"]
-      distanceOnParachute = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnParachute"]
-      distanceOnFreefall = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnFreefall"]
-      contender = self.contenders[accountId]
-      contender.accountId = accountId
-      contender.killCount = killCount
-      contender.distanceOnFoot =  int(round(distanceOnFoot))
-      contender.distanceOnVehicle = int(round(distanceOnVehicle))
-      contender.distanceOnParachute = int(round(distanceOnParachute))
-      contender.distanceOnFreefall = int(round(distanceOnFreefall))
-      self.contenders[accountId] = contender
+
+    for key in LogPlayerKillT:
+      if key == "killer":
+        if not LogPlayerKillT["killer"]["accountId"] == "":
+          accountId = LogPlayerKillT["killer"]["accountId"]
+          '''
+          for player in LogPlayerKillT["killer"]:
+            accountId = LogPlayerKillT["killer"]["accountId"]
+            name = LogPlayerKillT["killer"]["name"]
+            attackId = LogPlayerKillT["attackId"]
+          '''
+          contender = self.contenders[accountId]
+          contender.accountId = accountId
+          contender.killCount += 1
+          self.contenders[accountId] = contender
+
+      elif key == "victimGameResult":
+        for player in LogPlayerKillT["victimGameResult"]:      
+          accountId = LogPlayerKillT["victimGameResult"]["accountId"]
+          distanceOnFoot = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnFoot"]
+          distanceOnVehicle = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnVehicle"]
+          distanceOnParachute = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnParachute"]
+          distanceOnFreefall = LogPlayerKillT["victimGameResult"]["stats"]["distanceOnFreefall"]
+          contender = self.contenders[accountId]
+          contender.accountId = accountId
+          contender.distanceOnFoot =  int(round(distanceOnFoot))
+          contender.distanceOnVehicle = int(round(distanceOnVehicle))
+          contender.distanceOnParachute = int(round(distanceOnParachute))
+          contender.distanceOnFreefall = int(round(distanceOnFreefall))
+          self.contenders[accountId] = contender
+
 
   def parseLocation(self, t):
     accountId = t['character']['accountId']
@@ -110,6 +128,7 @@ class TelemetryParser:
     z = t["character"]['location']['z']
     timeStamp = t["_D"]
     return accountId, Location(x,y,z), timeStamp
+
 
   def parseLogMatchEnd(self, matchEndT):
     for player in matchEndT["characters"]:
@@ -136,6 +155,7 @@ class TelemetryParser:
       self.firstLandTime = timeStamp
       self.isFirstLand = False
 
+
   def parseLogVehicleLeave(self, logVehicleLeaveT):
     #print(".......: "+logVehicleLeaveT["vehicle"])
     if logVehicleLeaveT["vehicle"]["vehicleType"] == 'TransportAircraft':
@@ -159,7 +179,6 @@ class TelemetryParser:
       self.isFirstJump = False
     else:
       self.lastJumpLocation = location
-
 
 
 def landingTimeDelta(landingTime, firstLandTime):
@@ -191,13 +210,15 @@ for filename in processable_files:
       #print filename
       for accountId in tp.contenders:
         contender = tp.contenders[accountId]
-
+        #print 'haloo: '+str(contender.name)+', '+str(contender.killCount2)
         try:
           contender.distanceFromFlightPath = int(round(contender.landingLocation.distanceFromFlightPath(tp.firstJumpLocation, tp.lastJumpLocation)))
           contender.landingTimeDelta = int(round(landingTimeDelta(contender.landingTime, tp.firstLandTime)))
           contender.jumpDistance = int(round(math.sqrt( (contender.landingLocation.x - contender.jumpLocation.x)**2 + (contender.landingLocation.y - contender.jumpLocation.y)**2 )))
+          contender.landingFromFirstCircle = int(round(math.sqrt( (contender.landingLocation.x - tp.safezoneX)**2 + (contender.landingLocation.y - tp.safezoneY)**2 )))
+          contender.landingFromFourthCircle = int(round(math.sqrt( (contender.landingLocation.x - tp.safezoneX4)**2 + (contender.landingLocation.y - tp.safezoneY4)**2 )))
 
-          parsedContendersData.append((contender.distanceFromFlightPath, contender.rank, contender.landingTimeDelta, contender.jumpDistance, contender.killCount, contender.distanceOnVehicle,  contender.distanceOnParachute,  contender.distanceOnFreefall, contender.distanceOnFoot)) #koosta lista halutuista tiedoista
+          parsedContendersData.append((contender.killCount, contender.rank, contender.distanceFromFlightPath, contender.landingTimeDelta, contender.jumpDistance, contender.distanceOnVehicle, contender.landingFromFirstCircle, contender.landingFromFourthCircle)) #koosta lista halutuista tiedoista
         except:
           continue
 
@@ -209,9 +230,10 @@ for filename in processable_files:
 
 
 #tama toimii!
-print("distance,rank,landtimeDelta,jumpDistance,distanceOnFoot") #printtaa listan otsikko niista mista haluat
+print("killCount,rank,distanceFromFlightPath,landingTimeDelta,jumpDistance,distanceOnVehicle,landingFromFirstCircle,landingFromFourthCircle") #printtaa listan otsikko niista mista haluat
 for parsedContender in parsedContendersData:
-  print(str(parsedContender[0])+","+str(parsedContender[1])+","+str(parsedContender[2])+","+str(parsedContender[3])+","+str(parsedContender[4])+","+str(parsedContender[5])+","+str(parsedContender[6])+","+str(parsedContender[7])+","+str(parsedContender[8])) #printtaa halutut tiedot
+  #print(str(parsedContender[0])+","+str(parsedContender[1])) #printtaa halutut tiedot
+  print(str(parsedContender[0])+","+str(parsedContender[1])+","+str(parsedContender[2])+","+str(parsedContender[3])+","+str(parsedContender[4])+","+str(parsedContender[5])+","+str(parsedContender[6])+","+str(parsedContender[7])) #printtaa halutut tiedot
 
 
 
