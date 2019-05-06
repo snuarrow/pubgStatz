@@ -2,10 +2,13 @@ import requests
 import json
 import datetime
 from flows import WebDataBasePopulator
+from flows import LocalDataBasePopulator
 from api import API
 
-api = API()
-api.__init__()
+#api = API()
+#api.__init__()
+
+LocalDataBasePopulator = LocalDataBasePopulator('json')
 
 #webDataBasePopulator = WebDataBasePopulator()
 #webDataBasePopulator.saveAllMatchesOfPlayer("JantevaVarsi")
