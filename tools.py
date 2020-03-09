@@ -11,5 +11,5 @@ class DateTools:
         print("Error: not implemented yet.")
 
 class LocationTools:
-    def dist(pointA, pointB):
+    def dist(self, pointA, pointB):
         print("Error: not implemented yet")

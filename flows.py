@@ -1,4 +1,4 @@
-from dbHandle import DBHandle
+from dbHandle import DBHandle, getQueryString
 from interwebs import Interwebs
 from fileIO import JsonReader
 import json
@@ -59,10 +59,19 @@ class DataLoader:
         )
 
     def loadAllParachuteLandings(self, mapName: str):
-        return [x[0] for x in self.db.loadData(
-            #f"select event -> 'character' -> 'location' from (select json_array_elements(data) from telemetries) as json_object(event) where event ->> '_T'='LogParachuteLanding'"
-            f"select event -> 'character' -> 'location' from (select json_array_elements(data) from telemetries where id in (select id from matches where data -> 'data' -> 'attributes' ->> 'mapName'='{mapName}' and data -> 'data' -> 'attributes' ->> 'gameMode'='squad-fpp')) as json_object(event) where event ->> '_T'='LogParachuteLanding'"
-        )]
+        query = getQueryString('parachuteLandings.sql')
+        query = query.replace('{mapName}', mapName)
+        result = self.db.loadData(query)
+        return [{
+                'matchId': x[0],
+                'event': x[1]
+            } for x in result
+        ]
+
+
+    def loadAllWinningParachuteLandings(self, mapName: str):
+        print('yolo')
+
 
 # all _T events from karakin # select json_array_elements(data) from telemetries where id in (select id from matches where data -> 'data' -> 'attributes' ->> 'mapName'='Summerland_Main')
 

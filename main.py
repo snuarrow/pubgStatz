@@ -51,6 +51,7 @@ def main():
                 landings = json.load(f)
             dataframe = np.zeros([2200,2200])
             for landing in landings:
+                landing = landing['event']['character']['location']
                 dataframe[int(landing['y'] / 100)][int(landing['x'] / 100)] += 1
             # disable margins:
             #plt.gca().set_axis_off()

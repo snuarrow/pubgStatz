@@ -2,6 +2,12 @@ import psycopg2
 import pandas as pd
 import json
 
+def getQueryString(filename: str) -> str:
+    fd = open(f'sqlQueries/{filename}', 'r')
+    sqlFile = fd.read()
+    fd.close()
+    return sqlFile
+
 class DBHandle:
     def __init__(self, host, port, dbname, user, password):
         self.connection = self.getDBConnection(host, port, dbname, user, password)
