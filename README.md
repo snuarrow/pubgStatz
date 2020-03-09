@@ -2,6 +2,16 @@
 
 A Project where we collect and analyze data from PUBG Developer API
 
+## Usage:
+* Install docker and docker-compose
+* navigate into db/ and: docker-compose up  <- this starts postgres database in container which is accessable via localhost:5432
+* open +1 terminal and connect to database: psql -h localhost -p 5432 -U pubgstatz pubgstatz
+* db default password is 'pubgstatz'
+* open +1 terminal and navigate into project root
+* python3 main.py --populate --players=1 --root-player=JantevaVarsi    <- this populates db with all of defined players matches
+* python3 main.py --plot --plot-target=karakin_landings --cache    <- caches results from db into json file
+* python3 main.py --plot --plot-target=karakin_landings     <- plots landing heatmap
+
 ## To-Do:
 ### Iteration 1: 
 - [x] Get The API-requests Working
