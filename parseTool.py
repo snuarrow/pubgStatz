@@ -1,4 +1,6 @@
 from objects import Contender, Location
+import json
+import time
 
 class ParseTool:
     def getUrlFromMatchData(self, matchData):
@@ -32,8 +34,9 @@ class ParseTool:
         return landingTimes
 
 class TelemetryParser:
-    def __init__(self, telemetryJson):
-        print('TelemetryParser initialized')
+    def __init__(self, telemetry: list):
+        #print('TelemetryParser initialized')
+        self.telemetry = telemetry
         self.contenders = dict()
         self.matchData = dict()
         self.firstJumpLocation =  None
@@ -41,7 +44,7 @@ class TelemetryParser:
         self.lastJumpLocation = None
         self.isFirstLand = True
         self.isFirstJump = True
-        self.parseTValues(telemetryJson)
+        #self.parseTValues(telemetryJson)
 
     def parseTValues(self, telemetryJson):
         if len(telemetryJson) < 300:
@@ -112,4 +115,27 @@ class TelemetryParser:
         else:
             self.lastJumpLocation = location
 
+    def parsePlayerChronologies(self):
+        playerChronologies = {}
+        for event in self.telemetry:
+            if 'character' in event:
+                accountId = event['character']['accountId']
+                if accountId not in playerChronologies:
+                    playerChronologies[accountId] = [event]
+                else:
+                    playerChronologies[accountId].append(event)
+        
+        return playerChronologies
+
+    def matchStart(self):
+        for event in self.telemetry:
+            if event['_T'] == 'LogMatchStart':
+                return event
+        return None
+
+    def matchEnd(self):
+        for event in reversed(self.telemetry):
+            if event['_T'] == 'LogMatchEnd':
+                return event
+        return None
 
