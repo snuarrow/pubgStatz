@@ -1,12 +1,19 @@
 from parseTool import TelemetryParser
-from flows import DataLoader
-import threading
+from flows import DataLoader, LocalDataBasePopulator
+import multiprocessing
 from plotter import plotPlayerChronology
+import json
 from tools import DateTools
+from datetime import datetime, timedelta
+import numpy
+import time
+import gc
 
-def chunks(l: list, n: int):
-    n = max(1, n)
-    return [l[i:i+n] for i in range(0, len(l), n)]
+def chunks(l, n):
+    chunks = []
+    for i in range(0, n):
+        chunks.append(l[i::n])
+    return chunks
 
 class GradientFactory:
     def __init__(self, width: int, height: int, gameMode: str, mapName: str):
@@ -17,87 +24,155 @@ class GradientFactory:
         self.gameMode = gameMode
         self.mapName = mapName
         self.datetools = DateTools()
+        self.intervalPositions = []
 
-    def launch(self, threads: int):
-        matchIds = self.dataloader.loadMatchIds(gameMode=self.gameMode, mapName=self.mapName)[:1]
-        if threads > 1:
-            idChunks = chunks(matchIds, threads)
-            for i, idChunk in enumerate(idChunks):
-                threadPool = []
-                print(f'processing chunk {i}/{len(idChunks)}')
-                for matchId in idChunk:
-                    thread = threading.Thread(target=self.append, args=(matchId,))
-                    thread.start()
-                    threadPool.append(thread)
-                for thread in threadPool:
-                    thread.join()
-        else:
-            for matchId in matchIds:
-                self.append(matchId)
-
-    def _binary_search(self, events: list, toBeFound: datetime, left: int, right: int, previous_distance: timedelta, previous_mid: int):
-        mid = round((left + right) / 2)
-        subtraction = self.datetools.toDateTime_ms_accuracy(events[mid]['_D']) - toBeFound
-        if abs(subtraction) > previous_distance:
-            return events[previous_mid]
-        if left == mid or right == mid:
-            return events[mid]
-        if subtraction >= timedelta(0):
-            return binarySearch(events, toBeFound, left, mid, abs(subtraction), mid)
-        else:
-            return binarySearch(events, toBeFound, mid, right, abs(subtraction), mid)
-
-    def append(self, matchId: str):
-        telemetry = self.dataloader.loadTelemetry(matchId=matchId)
-        self.telemetryParser = TelemetryParser(telemetry)
-        intervals = self.datetools.getIntervals(self.telemetryParser.)
-        playerChronologies = self.telemetryParser.parsePlayerChronologies()
-        for accountId in playerChronologies:
-            #plotPlayerChronology(playerChronologies[accountId])
-            exit()
-
-
-
-
-
-
-def make_frames(grouped_events: dict, interval_seconds: int):
-    def binarySearch(datetools: DateTools, events: list, toBeFound: datetime, left: int, right: int, previous_distance: timedelta):
-        mid = round((left + right) /  2)
-        #print(type(events))
-        #print(f'left: {left}, right: {right}, mid: {mid}, len events: {len(events)}')
-        subtraction = datetools.toDateTime_ms_accuracy(events[mid]['_D']) - toBeFound
-        current_distance = abs(subtraction)
-        if left == mid or right == mid:
-            return events[mid]  
-        if subtraction >= timedelta(0):
-            return binarySearch(datetools, events, toBeFound, left, mid, abs(subtraction))
-        else:
-            return binarySearch(datetools, events, toBeFound, mid, right, abs(subtraction))
-
-    num_frames = 0
-    datetools = DateTools()
-    frames = []
-    for k, matchId in enumerate(grouped_events):
-        print(f'generate frames: {k+1}/{len(grouped_events)}, num frames: {num_frames}')
-        #print(json.dumps(grouped_events[matchId]['account.ccc4fc71e5274a32ac4bb89c2439e4ad'], indent=4))
+    def launch(self, threads: int=1):
+        matchIds = self.dataloader.loadMatchIds(gameMode=self.gameMode, mapName=self.mapName)
+        locationIds = self.dataloader.loadAllLocationIds()
+        telemetryIds = self.dataloader.loadAllTelemetryIds()
+        unprocessed_match_ids = list(set(matchIds).intersection(set(telemetryIds)) - set(locationIds))
+        print(f'matchIds: {len(matchIds)}')
+        print(f'locationIds: {len(locationIds)}')
+        print(f'telemetryIds: {len(telemetryIds)}')
+        print(f'unprocessed_match_ids: {len(unprocessed_match_ids)}')
         #exit()
-        first_datetime = datetools.toDateTime_ms_accuracy(grouped_events[matchId]['first']['_D'])
-        last_datetime = datetools.toDateTime_ms_accuracy(grouped_events[matchId]['last']['_D'])
-        intervals = datetools.getIntervals(first_datetime, last_datetime, interval_seconds)
-        for accountId in grouped_events[matchId]:
-            if accountId not in ['first', 'last']:
-                playerEvents = grouped_events[matchId][accountId]
-                #print(json.dumps(playerEvents, indent=4))
+        matchIds = [{
+            'matchId': x,
+            'i': i+1
+        } for i, x in enumerate(unprocessed_match_ids)]
+        if threads > 1:
+            idChunks = chunks(matchIds ,threads)
+            threadpool = []
+            notary = True
+            for ids in idChunks:
+                thread = multiprocessing.Process(
+                    target=self.append,
+                    args=(ids, len(matchIds),),
+                    daemon=True
+                )
+                notary = False
+                threadpool.append(thread)
+                thread.start()
+            for thread in threadpool:
+                thread.join()
+        else:
+            self.append(matchIds, len(matchIds))
+
+
+    def _binarySearch(self, events: list, toBeFound: datetime, left: int = 0, right: int = None):
+        if not right:
+            right = len(events) - 1
+        mid = round((left + right) / 2)
+        if left == mid or right == mid:
+            leftDist = abs(toBeFound - self.datetools.toDateTime_ms_accuracy(events[left]))
+            rightDist = abs(toBeFound - self.datetools.toDateTime_ms_accuracy(events[right]))
+            if leftDist < rightDist:
+                return left, left
+            return right, left
+        subtraction = self.datetools.toDateTime_ms_accuracy(events[mid]) - toBeFound
+        if subtraction >= timedelta(0):
+            return self._binarySearch(events, toBeFound, left, mid)
+        else:
+            return self._binarySearch(events, toBeFound, mid, right)
+
+    def _playerIntervals(self, intervals: list, playerChronology: list, rank: int, teamId: int):
+        out = []
+        left = 0
+        playerEventTimes = [x['_D'] for x in playerChronology]
+        previousEventTime = None
+        for i, interval in enumerate(intervals):
+            index, left = self._binarySearch(events=playerEventTimes, toBeFound=interval, left=left)
+            eventTime = playerChronology[index]['_D']
+            if not previousEventTime or eventTime == previousEventTime:
+                previousEventTime = eventTime
+                out.append(None)
+                continue
+            previousEventTime = eventTime
+            out.append({
+                'location': playerChronology[index]['character']['location'],
+                'rank': rank,
+                'teamId': teamId,
+            })
+        return out
+
+    def _cutTail(self, playerIntervals: list):
+        def getLastPositionIndex(playerIntervals: list):
+            playerIntervals.reverse()
+            for i, p in enumerate(playerIntervals):
+                if p:
+                    playerIntervals.reverse()
+                    return len(playerIntervals) - i
+            playerIntervals.reverse()
+            return 0
+
+        i = getLastPositionIndex(playerIntervals)
+        return playerIntervals[:i]
+
+    def _interpolatePlayerIntervals(self, playerIntervals: list):
+        previousP = playerIntervals[0]
+        for i, p in enumerate(playerIntervals):
+            if not p:
+                playerIntervals[i] = previousP
+            previousP = p
+        return playerIntervals
+
+    def append(self, matchIds: list, totalMatchIds: int):
+        localDataBasePopulator = LocalDataBasePopulator()
+        dataloader = DataLoader()
+        for matchId in matchIds:
+            print(f'matchId: {matchId["i"]} / matchIds: {totalMatchIds}')
+            try:
+                telemetry = dataloader.loadTelemetry(matchId=matchId['matchId'])
+            except IndexError:
+                print(f'gradient_factory telemetry load error: {matchId}')
+                continue
+            telemetryParser = TelemetryParser(telemetry)
+            playerChronologies = telemetryParser.parsePlayerChronologies()
+            matchStart = telemetryParser.matchStart()
+            matchEnd = telemetryParser.matchEnd()
+            matchLocations = []
+            intervals = self.datetools.getIntervals(startTime=matchStart, endTime=matchEnd, intervalSeconds=self.interval)
+            for accountId in playerChronologies:
+                #plotPlayerChronology(playerChronology=playerChronologies[accountId], matchStart=matchStart, matchEnd=matchEnd)
+                try:
+                    teamData = telemetryParser.teamIds[accountId]
+                except KeyError:
+                    continue
+                playerChronology = playerChronologies[accountId]
+                playerIntervals = self._playerIntervals(intervals=intervals, playerChronology=playerChronology, rank=teamData['rank'], teamId=teamData['teamId'])
+                #print(json.dumps(playerIntervals, indent=4))
                 #exit()
-                for i, interval in enumerate(intervals):
-                    eventAtInterval = binarySearch(datetools=datetools, events=playerEvents, toBeFound=interval, left=0, right=len(playerEvents)-1, previous_distance=timedelta(days=1))
-                    try:
-                        frames[i].append(eventAtInterval)
-                    except IndexError:
-                        frames.append([])
-                        frames[i].append(eventAtInterval)
-                    if i > num_frames:
-                        num_frames = i
-    return frames
-        
+                playerIntervals = self._cutTail(playerIntervals=playerIntervals)
+                playerIntervals = self._interpolatePlayerIntervals(playerIntervals=playerIntervals)
+                for i, p in enumerate(playerIntervals):
+                    if i == len(matchLocations):
+                        matchLocations.append([])
+                    matchLocations[i].append(p)
+            
+            locations = []
+            for i, locationInterval in enumerate(matchLocations):
+                elapsedTime = i * self.interval
+                out = {
+                    'elapsedTime': elapsedTime,
+                    'locations': locationInterval
+                }
+                
+                locations.append(out)
+                #print(f'{i} {len(locationInterval)}')
+                #print(matchId['matchId'])
+                #print(json.dumps(out, indent=4))
+                #exit()
+            #print(json.dumps(locations[2], indent=4))
+            #exit()
+            #print(len(locations))
+            localDataBasePopulator.saveLocations(matchId=matchId['matchId'], locations=locations)
+            #l = dataloader.loadLocations(matchId=matchId['matchId'])
+            #print(len(l))
+
+            del locations
+            del telemetry
+            del playerChronologies
+            del intervals
+            del telemetryParser
+            #print(gc.collect())
+

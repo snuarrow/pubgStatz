@@ -44,6 +44,7 @@ class TelemetryParser:
         self.lastJumpLocation = None
         self.isFirstLand = True
         self.isFirstJump = True
+        self.teamIds = {}
         #self.parseTValues(telemetryJson)
 
     def parseTValues(self, telemetryJson):
@@ -126,4 +127,38 @@ class TelemetryParser:
                     playerChronologies[accountId].append(event)
         
         return playerChronologies
+
+    def matchStart(self):
+        for event in self.telemetry:
+            if event['_T'] == 'LogMatchStart':
+                return event
+        return None
+
+    def _findTeamIds(self, logMatchEnd: dict):
+        teamIds = {}
+        for character in logMatchEnd['characters']:
+            try:
+                character = character['character']
+            except KeyError:
+                pass
+
+            accountId = character['accountId']
+            rank = character['ranking']
+            teamId = character['teamId']
+            teamIds[accountId] = {
+                'rank': rank,
+                'teamId': teamId
+            }
+
+        return teamIds
+
+    def matchEnd(self):
+        for event in reversed(self.telemetry):
+            if event['_T'] == 'LogMatchEnd':
+                #print(json.dumps(event, indent=4, default=str))
+                self.teamIds = self._findTeamIds(logMatchEnd=event)
+                #print(json.dumps(self.teamIds, indent=4))
+                #exit()
+                return event
+        return None
 

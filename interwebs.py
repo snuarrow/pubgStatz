@@ -3,6 +3,7 @@ from parseTool import ParseTool
 import json
 import datetime
 import time
+import urllib3
 
 class Interwebs:
 
@@ -19,7 +20,25 @@ class Interwebs:
 
     def webGetMatchData(self, matchId):
         url = "https://api.pubg.com/shards/pc-eu/matches/"+matchId
-        return requests.get(url, headers=self.header).json()
+        while (True):
+            try:
+                response = requests.get(url, headers=self.header)
+            except requests.exceptions.ConnectionError as e:
+                print(e)
+                print(f'request connection error: {url}')
+                break
+            if response.status_code == 429:
+                print(f'too many requests, waiting...')
+                time.sleep(60)
+            else:
+                break
+
+        try:
+            return response.json()
+        except json.decoder.JSONDecodeError as e:
+            print(e)
+            return None
+        #return requests.get(url, headers=self.header).json()
 
     def webGetMatchIdsOfPlayer(self, playerName):
         url = "https://api.pubg.com/shards/steam/players?filter[playerNames]="+playerName
@@ -42,11 +61,18 @@ class Interwebs:
 
     def webGetFullTelemetryByMatchData(self, matchData):
         url = self.parseTool.getUrlFromMatchData(matchData)
-        response = requests.get(url)
+        response = None
         try:
-            return response.json()
-        except json.decoder.JSONDecodeError:
-            return None
+            response = requests.get(url)
+        except (requests.exceptions.ConnectionError, urllib3.exceptions.ProtocolError, requests.exceptions.ChunkedEncodingError) as e:
+            print(e)
+            print(f'Error at interwebs.webGetFullTelemetryByMatchData, url: {url}')
+        if response:
+            try:
+                return response.json()
+            except json.decoder.JSONDecodeError:
+                pass
+        return None
 
     def webGetMatchesByMap(self, mapName, matchIds):
         return list(

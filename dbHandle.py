@@ -14,7 +14,12 @@ class DBHandle:
         self.initDB()
     
     def getDBConnection(self, host, port, dbname, user, password):
-        return psycopg2.connect("host="+host+" port="+port+" dbname="+dbname+ " user="+user+" password="+password)
+        try:
+            return psycopg2.connect("host="+host+" port="+port+" dbname="+dbname+ " user="+user+" password="+password)
+        except psycopg2.OperationalError as e:
+            print(e)
+            print('could not connect to database, is it running?')
+            exit(5)
 
     def getCursor(self):
         return self.connection.cursor()
@@ -33,7 +38,30 @@ class DBHandle:
         self.sqlCommand("CREATE TABLE IF NOT EXISTS users (id VARCHAR NOT NULL PRIMARY KEY, data json NOT NULL)")
         self.sqlCommand("CREATE TABLE IF NOT EXISTS matches (id VARCHAR NOT NULL PRIMARY KEY, data json NOT NULL)")
         self.sqlCommand("CREATE TABLE IF NOT EXISTS telemetries (id VARCHAR NOT NULL PRIMARY KEY, data json NOT NULL)")
+        self.sqlCommand("CREATE TABLE IF NOT EXISTS locations (id VARCHAR NOT NULL PRIMARY KEY, data json NOT NULL)")
         self.sqlCommand("CREATE TABLE IF NOT EXISTS matchesByMap (id VARCHAR NOT NULL PRIMARY KEY, data VARCHAR NOT NULL)")
+
+    def loadLocations(self, matchId: str):
+        cursor = self.getCursor()
+        cursor.execute(f"SELECT * FROM locations WHERE id='{str(matchId)}'")
+        record = cursor.fetchall()
+        if len(record) == 1:
+            return record[0][1]
+        else:
+            return None
+
+    def saveLocations(self, matchId: str, locations: list, overwrite: bool=False):
+        locations = json.dumps(locations)
+        try:
+            if not self.loadLocations(matchId) or overwrite:
+                self.getCursor().execute(f"INSERT INTO locations VALUES('{str(matchId)}','{locations}')")
+                self.connection.commit()
+            else:
+                print(f"Error: locations for {matchId} already exists")
+                exit()
+        except (Exception, psycopg2.Error) as e:
+            print(e)
+            print(f"Failed to save locations for: {matchId}")
 
     # TODO: get rid of copypaste in save functions
     def saveUserJson(self, userId, userJson):
@@ -51,7 +79,7 @@ class DBHandle:
         cursor = self.getCursor()
         cursor.execute("SELECT * FROM users WHERE id="+str(userId))
         record = cursor.fetchall()
-        if len(record) is 1:
+        if len(record) == 1:
             return True, record[0][1]
         else:
             return False
@@ -67,7 +95,7 @@ class DBHandle:
         cursor = self.getCursor()
         cursor.execute(f"select * from matches where id='{matchId}'")
         record = cursor.fetchall()
-        if len(record) is 1:
+        if len(record) == 1:
             return True, record[0][1]
         else:
             return False
@@ -84,7 +112,7 @@ class DBHandle:
         cursor.execute(f"select * from telemetries where id='{matchId}'")
         record = cursor.fetchall()
 
-        if len(record) is 1:
+        if len(record) == 1:
             return True, record[0][1]
         else:
             return False

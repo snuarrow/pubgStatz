@@ -2,6 +2,7 @@ import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 import json
+from tools import DateTools
 from scipy.ndimage.filters import gaussian_filter
 
 #big_data = []
@@ -35,8 +36,23 @@ from scipy.ndimage.filters import gaussian_filter
 #    def __init__(self):
 #        print('yolo')
 
-def plotPlayerChronology(playerChronology: list):
+def plotPlayerChronology(playerChronology: list, matchStart: dict, matchEnd: dict):
+    datetools = DateTools()
+    matchStartTime = datetools.toDateTime_ms_accuracy(matchStart["_D"])
+    matchEndTime = datetools.toDateTime_ms_accuracy(matchEnd["_D"])
     print(len(playerChronology))
-    for event in playerChronology[:10]:
-        print(json.dumps(event, indent=4))
-        print('-------------------------')
+    timestamps = []
+    for event in playerChronology:
+        ts = datetools.toDateTime_ms_accuracy(event["_D"])
+        if datetools.inRange(matchStartTime, ts, matchEndTime):
+            timestamps.append(ts)
+
+    distances = []
+
+    for i, ts in enumerate(timestamps[1:]):
+        dist = abs((ts - timestamps[i-1]).total_seconds())
+        if dist < 20:
+            distances.append(dist)
+
+    plt.hist(distances, density=True, bins=30)
+    plt.show()

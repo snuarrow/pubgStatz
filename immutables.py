@@ -1,3 +1,5 @@
+import os
+
 gameModes = [
     'solo-fpp',
     'duo-fpp',
@@ -16,3 +18,9 @@ mapNames = {
   "Savage_Main": "Sanhok",
   "Summerland_Main": "Karakin"
 }
+
+try:
+  db_host = os.environ['PUBGSTATZ_DB_HOST']
+except KeyError:
+  print('PUBGSTATZ_DB_HOST not exported, run export PUBGSTATZ_DB_HOST=<db host>')
+  exit(1)

@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from animator import Animator
 import random
 from gradient_factory import GradientFactory
+import gc
 
 def dev():
 
@@ -287,6 +288,8 @@ def parse_arguments():
     parser.add_argument('--plot-target', type=str, help='some of these: squad_landings, ...')
     parser.add_argument('--cache', action='store_true', help='enable caching')
     parser.add_argument('--dev', action='store_true', help='use this for development')
+    parser.add_argument('--cache-locations', action='store_true', help='cache player locations by interval of 3sec into database table locations')
+    parser.add_argument('--threads', type=int, default=1)
     args = parser.parse_args()
     return args
 
@@ -308,11 +311,17 @@ def main():
         print('yolo')
         #matchIds = dataloader.loadMatchIds(gameMode='squad-fpp', mapName='Summerland_Main')
         #telemetry = dataloader.loadTelemetry(matchIds[0])
-        gradient_factory = GradientFactory(height=1920, width=1920, gameMode='squad-fpp', mapName='Summerland_Main')
-        gradient_factory.launch(threads=1)
+        #gradient_factory = GradientFactory(height=1920, width=1920, gameMode='squad-fpp', mapName='Summerland_Main')
+        #gradient_factory.launch(threads=2)
         #print(json.dumps(telemetry, indent=4))
         #dev_winners()
         return
+
+    if args.cache_locations:
+        gradient_factory = GradientFactory(height=1920, width=1920, gameMode='squad-fpp', mapName='Summerland_Main')
+        gradient_factory.launch(threads=args.threads)
+        return
+
     if args.db_status:
         dbStatus = dataloader.loadDatabaseStatus()
         print(json.dumps(dbStatus, indent=4))
@@ -322,9 +331,10 @@ def main():
         webDataBasePopulator = WebDataBasePopulator()
         webDataBasePopulator.saveAllMatchesOfPlayer(playerName=args.root_player)
         dataLoader = DataLoader()
-        uniquePlayers = random.sample(dataLoader.loadUniquePlayers(), args.players)
+        uniquePlayers = dataloader.loadUniquePlayers(count=args.players)
+        #uniquePlayers = random.sample(dataLoader.loadUniquePlayers(), args.players)
         for uniquePlayer in uniquePlayers:
-            webDataBasePopulator.saveAllMatchesOfPlayer(playerName=uniquePlayer[1])
+            webDataBasePopulator.saveAllMatchesOfPlayer(playerName=uniquePlayer)
         webDataBasePopulator.getTelemetriesForExistingMatches()
         print('database population complete')
         return
@@ -366,4 +376,5 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
+        gc.collect()
         sys.exit(1)
