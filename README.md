@@ -8,6 +8,7 @@ A Project where we collect and analyze data from PUBG Developer API
 * open +1 terminal and connect to database: psql -h localhost -p 5432 -U pubgstatz pubgstatz
 * db default password is 'pubgstatz'
 * open +1 terminal and navigate into project root
+* export PUBG_TOKEN=<your_token>
 * python3 main.py --populate --players=1 --root-player=JantevaVarsi    <- this populates db with all of defined players matches
 * python3 main.py --plot --plot-target=karakin_landings --cache    <- caches results from db into json file
 * python3 main.py --plot --plot-target=karakin_landings     <- plots landing heatmap
