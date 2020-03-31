@@ -1,0 +1,10 @@
+postgres:
+    image: postgres:9.6-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: 'pubgstatz'
+      POSTGRES_PASSWORD: 'pubgstatz'
+      POSTGRES_DB: 'pubgstatz'
+
+# docker-compose -f docker-compose.yml up
