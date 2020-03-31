@@ -14,7 +14,6 @@ def parse_arguments():
     parser.add_argument('--populate', action='store_true', help='populate database')
     parser.add_argument('--players', type=int, help='downloadload matches and telemetries from this many players')
     parser.add_argument('--root-player', type=str, help='root player name, to where start recursive data search')
-    parser.add_argument('--token', type=str, help='pubg api token')
     parser.add_argument('--plot', action='store_true', help='enable plotting')
     parser.add_argument('--plot-target', type=str, help='some of these: squad_landings, ...')
     parser.add_argument('--cache', action='store_true', help='enable caching')
