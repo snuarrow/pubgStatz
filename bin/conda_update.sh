@@ -1,0 +1,1 @@
+conda env update -f cenv.yaml -n pubgStatz
