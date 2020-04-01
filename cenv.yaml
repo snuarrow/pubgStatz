@@ -1,0 +1,9 @@
+name: pubgStatz
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8.*
+  - psycopg2=2.8.*
+  - pandas=1.0.*
+  - requests=2.23.*
+  - seaborn=0.10.*

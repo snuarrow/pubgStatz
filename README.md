@@ -3,6 +3,10 @@
 A Project where we collect and analyze data from PUBG Developer API
 
 ## Usage:
+* activate conda virtual environment with:
+- ./bin/install_miniconda.sh
+- ./bin/conda_update.sh
+- ./bin/conda_activate.sh
 * Install docker and docker-compose
 * navigate into db/ and: docker-compose up  <- this starts postgres database in container which is accessable via localhost:5432
 * open +1 terminal and connect to database: psql -h localhost -p 5432 -U pubgstatz pubgstatz
